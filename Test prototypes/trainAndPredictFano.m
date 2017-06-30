@@ -15,6 +15,8 @@ function accuracy = trainAndPredictFano(trainData, trainLabels, testData, testLa
     for col = 1:size(codeMatrix,2)
         predictions(:,col) = predict(ecocMdl.BinaryLearners{col}, trainData);
     end
+    
+    %predictions = cell2mat(cellfun(@predict, ecocMdl.BinaryLearners', repmat({trainData},1,numel(ecocMdl.BinaryLearners)), 'UniformOutput', false));
 
     % the output of the function predict is in terms of ones and zeros.
     % the zeros need to be converted to -1 and negated to match our convention
@@ -78,7 +80,7 @@ function accuracy = trainAndPredictFano(trainData, trainLabels, testData, testLa
                     else
                         fanoProb(row, col) = 1-performanceMat(row, col);
                     end
-                    % else calculate tail probability
+                % else calculate tail probability
                 else
                     if(binaryPred(col) == 1)
                         fanoProb(row, col) = tailProbOfOne(row, col);
