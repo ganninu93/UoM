@@ -1,4 +1,4 @@
-function accuracy = trainAndPredictLossWeighted(trainData, trainLabels, testData, testLabels, codeMatrix, ecocMdl)
+function accuracy = trainAndPredictLossWeighted(performanceMat, testData, testLabels, codeMatrix, ecocMdl)
 
     %%%%%%%%%%%%%%%%%%%%
     % Validation phase %
@@ -8,30 +8,6 @@ function accuracy = trainAndPredictLossWeighted(trainData, trainLabels, testData
     % to predict the training data. The accuracy for each model-class pair will
     % be calculated and a weight matrix will be generated based on these
     % accuracies
-
-    % Use the models built during the training phase to predict data
-    predictions = zeros(size(trainData,1), size(codeMatrix,2));
-    for col = 1:size(codeMatrix,2)
-        predictions(:,col) = predict(ecocMdl.BinaryLearners{col}, trainData);
-    end
-
-    % the output of the function predict is in terms of ones and zeros.
-    % the zeros need to be converted to -1 and negated to match our convention
-    predictions(predictions==0) = -1;
-    %predictions = predictions .* -1;
-
-    % build H matrix which holds the performance of the dichotomizers
-    performanceMat = zeros(size(codeMatrix));
-    for col = 1:size(codeMatrix,2)
-        for row = 1:size(codeMatrix,1)
-            if codeMatrix(row,col) ~= 0
-                expectedValue = codeMatrix(row, col);
-                classIdx = find(trainLabels == row);
-                predictedValue = predictions(classIdx, col);
-                performanceMat(row, col) = sum(predictedValue == expectedValue)/numel(classIdx);
-            end
-        end
-    end
 
     % build weight matrix by normalising H matrix so that each row sums up to 1
     weightMat = zeros(size(codeMatrix));

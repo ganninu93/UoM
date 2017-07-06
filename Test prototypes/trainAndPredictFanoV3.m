@@ -1,7 +1,4 @@
-% This implementation takes the probability Qt to be the probability that a
-% dichotomy produces a specific value irrispective of the class being
-% passed. The probability Pr(y|t) is the cross over tail probability
-function accuracy = trainAndPredictFanoV2(performanceMat, tailProbOfOne, predictions, trainLabels, testData, testLabels, codeMatrix, ecocMdl)
+function accuracy = trainAndPredictFanoV3(performanceMat, tailProbOfOne, predictions, trainLabels, testData, testLabels, codeMatrix, ecocMdl)
     numLabels = numel(unique(trainLabels));
 
     %%%%%%%%%%%%%%%%%%%%
