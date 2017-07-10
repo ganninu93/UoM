@@ -1,4 +1,4 @@
-function accuracy = trainAndPredictFano(performanceMat, tailProbOfOne, predictions, trainLabels, testData, testLabels, codeMatrix, ecocMdl)
+function accuracy = trainAndPredictFano(performanceMat, tailProbOfOne, predictions, testPred, trainLabels, testData, testLabels, codeMatrix, ecocMdl)
     numLabels = numel(unique(trainLabels));
 
     %%%%%%%%%%%%%%%%%%%%
@@ -25,25 +25,19 @@ function accuracy = trainAndPredictFano(performanceMat, tailProbOfOne, predictio
 
     % predict test data points
     for dataPt = 1:size(testData,1)
-        % get predictions from every dichotomy
-        binaryPred = zeros(1,size(codeMatrix, 2));
-        for col = 1:size(codeMatrix, 2)
-            binaryPred(col) = predict(ecocMdl.BinaryLearners{col}, testData(dataPt,:));
-        end
-
         fanoProb = ones(size(codeMatrix));
         for row = 1:size(codeMatrix,1)
             for col = 1:size(codeMatrix,2)
                 % calculate cross over probability
                 if(codeMatrix(row,col) ~= 0)
-                    if(binaryPred(col) == codeMatrix(row, col))
+                    if(testPred(dataPt, col) == codeMatrix(row, col))
                         fanoProb(row, col) = performanceMat(row, col);
                     else
                         fanoProb(row, col) = 1-performanceMat(row, col);
                     end
                 % else calculate tail probability
                 else
-                    if(binaryPred(col) == 1)
+                    if(testPred(dataPt, col) == 1)
                         fanoProb(row, col) = tailProbOfOne(row, col);
                     else
                         fanoProb(row, col) = 1 - tailProbOfOne(row, col);

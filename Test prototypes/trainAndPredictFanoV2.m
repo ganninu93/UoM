@@ -1,7 +1,7 @@
 % This implementation takes the probability Qt to be the probability that a
 % dichotomy produces a specific value irrispective of the class being
 % passed. The probability Pr(y|t) is the cross over tail probability
-function accuracy = trainAndPredictFanoV2(performanceMat, tailProbOfOne, predictions, trainLabels, testData, testLabels, codeMatrix, ecocMdl)
+function accuracy = trainAndPredictFanoV2(performanceMat, tailProbOfOne, predictions, testPred, trainLabels, testData, testLabels, codeMatrix, ecocMdl)
     numLabels = numel(unique(trainLabels));
 
     %%%%%%%%%%%%%%%%%%%%
@@ -62,12 +62,6 @@ function accuracy = trainAndPredictFanoV2(performanceMat, tailProbOfOne, predict
 
     % predict test data points
     for dataPt = 1:size(testData,1)
-        % get output word i.e get predictions from every dichotomy
-        binaryPred = zeros(1,size(codeMatrix, 2));
-        for col = 1:size(codeMatrix, 2)
-            binaryPred(col) = predict(ecocMdl.BinaryLearners{col}, testData(dataPt,:));
-        end
-                
         crossOverProbTail = zeros(size(codeMatrix,1),1);
         crossOverProb = ones(size(codeMatrix,1),1);
         for row = 1:size(codeMatrix,1)
@@ -75,7 +69,7 @@ function accuracy = trainAndPredictFanoV2(performanceMat, tailProbOfOne, predict
             nonZeroIdx = find(codeMatrix(row,:)~=0);
             %Calculate cross over prob for non tail elements
             for idx = 1:numel(nonZeroIdx)
-                if(binaryPred(nonZeroIdx(idx)) == codeMatrix(row, nonZeroIdx(idx)))
+                if(testPred(dataPt, nonZeroIdx(idx)) == codeMatrix(row, nonZeroIdx(idx)))
                     crossOverProb(row) = crossOverProb(row)*performanceMat(row, nonZeroIdx(idx));
                 else
                     crossOverProb(row) = crossOverProb(row)*(1-performanceMat(row, nonZeroIdx(idx)));
@@ -87,7 +81,7 @@ function accuracy = trainAndPredictFanoV2(performanceMat, tailProbOfOne, predict
             binComb = dec2bin([0:(2^numZerosInRow)-1]);
             for binNum = 1:size(binComb,1)
                 for bit = 1:size(binComb,2)
-                    if(binaryPred(zeroIdx(bit)) == 1)
+                    if(testPred(dataPt, zeroIdx(bit)) == 1)
                         crossOverProbTail(row) = crossOverProbTail(row)+(Qt(binNum)*tailProbOfOne(row, zeroIdx(bit)));
                     else
                         crossOverProbTail(row) = crossOverProbTail(row)+(Qt(binNum)*(1-tailProbOfOne(row, zeroIdx(bit))));

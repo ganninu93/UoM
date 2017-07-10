@@ -1,4 +1,4 @@
-function accuracy = trainAndPredictLossWeighted(performanceMat, testData, testLabels, codeMatrix, ecocMdl)
+function accuracy = trainAndPredictLossWeighted(performanceMat, testData, testLabels,  testPred, codeMatrix, ecocMdl)
 
     %%%%%%%%%%%%%%%%%%%%
     % Validation phase %
@@ -10,10 +10,7 @@ function accuracy = trainAndPredictLossWeighted(performanceMat, testData, testLa
     % accuracies
 
     % build weight matrix by normalising H matrix so that each row sums up to 1
-    weightMat = zeros(size(codeMatrix));
-    for row = 1:size(codeMatrix,1)
-        weightMat(row,:) = (1/sum(performanceMat(row,:))) .* performanceMat(row, :);
-    end
+    weightMat = repmat(1./sum(performanceMat,2),1,size(performanceMat,2)) .* performanceMat;
 
     %%%%%%%%%%%%%%%%%
     % Testing Phase %
@@ -28,16 +25,10 @@ function accuracy = trainAndPredictLossWeighted(performanceMat, testData, testLa
 
     predictions = zeros(numel(testLabels),1);
     for dataPt = 1:numel(testLabels)
-        % get predictions from every dichotomy
-        binaryPred = zeros(1,size(codeMatrix, 2));
-        for col = 1:size(codeMatrix, 2)
-            binaryPred(col) = predict(ecocMdl.BinaryLearners{col}, testData(dataPt,:));
-        end
-
         % Calculate weighted loss
         weightedLoss = zeros(size(codeMatrix, 1),1);
         for row = 1:size(codeMatrix, 1)
-            expLoss = exp(-binaryPred .* codeMatrix(row, :));
+            expLoss = exp(-testPred(dataPt, :) .* codeMatrix(row, :));
             weightedLoss(row) = sum(weightMat(row,:) .* expLoss);
         end
 
@@ -48,4 +39,3 @@ function accuracy = trainAndPredictLossWeighted(performanceMat, testData, testLa
     % calculate accuracy
     accuracy = sum((predictions==testLabels))/numel(testLabels);
 end
-

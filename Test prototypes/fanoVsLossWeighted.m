@@ -1,7 +1,6 @@
 % train and predict using the fano metric and loss weighted technique for
 % 10 times, each time calculating the accuracy. Average out the accuracies
 % and see which method is superior
-
 numFolds = 10;
 
 % pre-process iris dataset
@@ -59,7 +58,7 @@ for foldNo = 1:numFolds
         end
     end
     
-        % calculate probability that 1 occurs in places where codeMatrix=0
+    % calculate probability that 1 occurs in places where codeMatrix=0
     % the remaining locations are marked with a -1 for easier identification
     tailProbOfOne = ones(size(codeMatrix))*-1;
     for row = 1:size(codeMatrix,1)
@@ -72,15 +71,20 @@ for foldNo = 1:numFolds
         end
     end
     
+    % predict test data
+    testPred = zeros(size(testData,1),size(codeMatrix, 2));
+    for col = 1:size(codeMatrix, 2)
+        testPred(:,col) = predict(ecocMdl.BinaryLearners{col}, testData);
+    end 
+    
     %%%%%%%%%%%%%%%%%%
     % Decoding phase %
     %%%%%%%%%%%%%%%%%%
-    accuracies(1,foldNo) = trainAndPredictFano(performanceMat, tailProbOfOne, predictions, trainLabels, testData, testLabels, codeMatrix, ecocMdl);
-    accuracies(2,foldNo) = trainAndPredictFanoV2(performanceMat, tailProbOfOne, predictions,trainLabels, testData, testLabels, codeMatrix, ecocMdl);
-    accuracies(3,foldNo) = trainAndPredictFanoV3(performanceMat, tailProbOfOne, predictions,trainLabels, testData, testLabels, codeMatrix, ecocMdl);
-    accuracies(4,foldNo) = trainAndPredictLossWeighted(performanceMat, testData, testLabels, codeMatrix, ecocMdl);
+    accuracies(1,foldNo) = trainAndPredictFano(performanceMat, tailProbOfOne, predictions, testPred, trainLabels, testData, testLabels, codeMatrix, ecocMdl);
+    accuracies(2,foldNo) = trainAndPredictFanoV2(performanceMat, tailProbOfOne, predictions, testPred, trainLabels, testData, testLabels, codeMatrix, ecocMdl);
+    accuracies(3,foldNo) = trainAndPredictFanoV3(performanceMat, tailProbOfOne, predictions, testPred, trainLabels, testData, testLabels, codeMatrix, ecocMdl);
+    accuracies(4,foldNo) = trainAndPredictLossWeighted(performanceMat, testData, testLabels, testPred, codeMatrix, ecocMdl);
 end
-
 avgAcc = mean(accuracies,2);
 disp(strcat('Fano metric V1= ', num2str(avgAcc(1))));
 disp(strcat('Fano metric V2 = ', num2str(avgAcc(2))));
