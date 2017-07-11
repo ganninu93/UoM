@@ -1,19 +1,6 @@
 function accuracy = trainAndPredictFano(performanceMat, tailProbOfOne, predictions, testPred, trainLabels, testData, testLabels, codeMatrix, ecocMdl)
     numLabels = numel(unique(trainLabels));
 
-    %%%%%%%%%%%%%%%%%%%%
-    % Validation phase %
-    %%%%%%%%%%%%%%%%%%%%
-
-    % The following section uses the models generated during the training phase
-    % to predict the training data. The accuracy for each model-class pair will
-    % be calculated and a weight matrix will be generated based on these
-    % accuracies
-
-    %%%%%%%%%%%%%%%%%
-    % Testing Phase %
-    %%%%%%%%%%%%%%%%%
-
     testPredictions = zeros(numel(testLabels), 1);
 
     % calculate apriori probability of class distribution based on training
@@ -48,7 +35,6 @@ function accuracy = trainAndPredictFano(performanceMat, tailProbOfOne, predictio
 
         [~, testPredictions(dataPt)] = max(aprioriProb .* prod(fanoProb,2));
     end
-
     accuracy = sum(testPredictions == testLabels)/numel(testLabels);
 end
 

@@ -4,15 +4,6 @@
 function accuracy = trainAndPredictFanoV2(performanceMat, tailProbOfOne, predictions, testPred, trainLabels, testData, testLabels, codeMatrix, ecocMdl)
     numLabels = numel(unique(trainLabels));
 
-    %%%%%%%%%%%%%%%%%%%%
-    % Validation phase %
-    %%%%%%%%%%%%%%%%%%%%
-
-    % The following section uses the models generated during the training phase
-    % to predict the training data. The accuracy for each model-class pair will
-    % be calculated and a weight matrix will be generated based on these
-    % accuracies
-
     % calculate probability that dichotomy outputs a 1 based on entire
     % training dataset
     probOfOne = sum(predictions==1)/size(predictions,1);
@@ -31,7 +22,7 @@ function accuracy = trainAndPredictFanoV2(performanceMat, tailProbOfOne, predict
     testPredictions = zeros(numel(testLabels), 1);
     
     % perform tail calculations
-    sumTailProb = zeros(size(codeMatrix,1),1);
+    Qt = cell(size(codeMatrix,1),1);
     for row = 1:size(codeMatrix,1)
         zeroIdx = find(codeMatrix(row,:)==0);
         numZerosInRow = numel(zeroIdx);
@@ -39,25 +30,11 @@ function accuracy = trainAndPredictFanoV2(performanceMat, tailProbOfOne, predict
         binComb = dec2bin([0:(2^numZerosInRow)-1]);
         % Calculate probability that given tail is generated based on
         % dichotomy's performance on entire training data set - Qt
-        temp = zeros(size(binComb,1),size(binComb,2));
+        bitProb = zeros(size(binComb,1),size(binComb,2));
         for bit = 1:size(binComb,2)
-            temp(:,bit) = ((1-str2num(binComb(:,bit)))*(1-probOfOne(zeroIdx(bit))))+str2num(binComb(:,bit))*probOfOne(zeroIdx(bit));
+            bitProb(:,bit) = ((1-str2num(binComb(:,bit)))*(1-probOfOne(zeroIdx(bit))))+str2num(binComb(:,bit))*probOfOne(zeroIdx(bit));
         end
-        Qt = prod(temp,2);
-        
-        % Calculate cross over probability for a given class
-        for binNum = 1:size(binComb,1)
-            tailProb = 1;
-            for bit = 1:size(binComb,2)
-                
-                if(binComb(binNum, bit) == '1')
-                   tailProb = tailProb * tailProbOfOne(row,zeroIdx(bit)) ;
-                else
-                   tailProb = tailProb * (1-tailProbOfOne(row,zeroIdx(bit)));
-                end
-            end
-            sumTailProb(row) = sumTailProb(row) + tailProb;
-        end
+        Qt{row} = prod(bitProb,2);
     end
 
     % predict test data points
@@ -81,10 +58,10 @@ function accuracy = trainAndPredictFanoV2(performanceMat, tailProbOfOne, predict
             binComb = dec2bin([0:(2^numZerosInRow)-1]);
             for binNum = 1:size(binComb,1)
                 for bit = 1:size(binComb,2)
-                    if(testPred(dataPt, zeroIdx(bit)) == 1)
-                        crossOverProbTail(row) = crossOverProbTail(row)+(Qt(binNum)*tailProbOfOne(row, zeroIdx(bit)));
+                    if(binComb(binNum,bit) == '1')
+                        crossOverProbTail(row) = crossOverProbTail(row)+(Qt{row}(binNum)*tailProbOfOne(row, zeroIdx(bit)));
                     else
-                        crossOverProbTail(row) = crossOverProbTail(row)+(Qt(binNum)*(1-tailProbOfOne(row, zeroIdx(bit))));
+                        crossOverProbTail(row) = crossOverProbTail(row)+(Qt{row}(binNum)*(1-tailProbOfOne(row, zeroIdx(bit))));
                     end
                 end
             end

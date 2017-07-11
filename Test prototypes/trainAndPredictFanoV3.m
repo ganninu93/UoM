@@ -1,18 +1,9 @@
+% This implementation calculates the probability that a tail is generated
+% (Qt), based on the predictions produces when specific classes are
+% inputted. E.g when calculating the tails of the first row, only the
+% probabilities of the first class are considered.
 function accuracy = trainAndPredictFanoV3(performanceMat, tailProbOfOne, predictions,  testPred, trainLabels, testData, testLabels, codeMatrix, ecocMdl)
     numLabels = numel(unique(trainLabels));
-
-    %%%%%%%%%%%%%%%%%%%%
-    % Validation phase %
-    %%%%%%%%%%%%%%%%%%%%
-
-    % The following section uses the models generated during the training phase
-    % to predict the training data. The accuracy for each model-class pair will
-    % be calculated and a weight matrix will be generated based on these
-    % accuracies
-
-    % calculate probability that dichotomy outputs a 1 based on entire
-    % training dataset
-    probOfOne = sum(predictions==1)/size(predictions,1);
     
     % calculate apriori probability of class distribution based on training
     % labels
@@ -27,34 +18,25 @@ function accuracy = trainAndPredictFanoV3(performanceMat, tailProbOfOne, predict
     
     testPredictions = zeros(numel(testLabels), 1);
     
-    % perform tail calculations
-    sumTailProb = zeros(size(codeMatrix,1),1);
+    Qt = cell(size(codeMatrix,1),1);
     for row = 1:size(codeMatrix,1)
+        % locate position of zeros
         zeroIdx = find(codeMatrix(row,:)==0);
         numZerosInRow = numel(zeroIdx);
+        % calculate probability that zero positions output a value of 1 for
+        % the current class (row)
+        classPredictions = predictions(find(trainLabels==row),zeroIdx);
+        probOfOne = sum(classPredictions == 1)/size(classPredictions,1);
+        
         %generate all possible combinations for zero locations
         binComb = dec2bin([0:(2^numZerosInRow)-1]);
         % Calculate probability that given tail is generated based on
-        % dichotomy's performance on entire training data set - Qt
+        % dichotomy's the performance of a specific class - Qt
         temp = zeros(size(binComb,1),size(binComb,2));
         for bit = 1:size(binComb,2)
-            temp(:,bit) = ((1-str2num(binComb(:,bit)))*(1-probOfOne(zeroIdx(bit))))+str2num(binComb(:,bit))*probOfOne(zeroIdx(bit));
+            temp(:,bit) = ((1-str2num(binComb(:,bit)))*(1-probOfOne(bit)))+str2num(binComb(:,bit))*probOfOne(bit);
         end
-        Qt = prod(temp,2);
-        
-        % Calculate cross over probability for a given class
-        for binNum = 1:size(binComb,1)
-            tailProb = 1;
-            for bit = 1:size(binComb,2)
-                
-                if(binComb(binNum, bit) == '1')
-                   tailProb = tailProb * tailProbOfOne(row,zeroIdx(bit)) ;
-                else
-                   tailProb = tailProb * (1-tailProbOfOne(row,zeroIdx(bit)));
-                end
-            end
-            sumTailProb(row) = sumTailProb(row) + tailProb;
-        end
+        Qt{row} = prod(temp,2);
     end
 
     % predict test data points
@@ -78,10 +60,10 @@ function accuracy = trainAndPredictFanoV3(performanceMat, tailProbOfOne, predict
             binComb = dec2bin([0:(2^numZerosInRow)-1]);
             for binNum = 1:size(binComb,1)
                 for bit = 1:size(binComb,2)
-                    if(testPred(dataPt, zeroIdx(bit)) == 1)
-                        crossOverProbTail(row) = crossOverProbTail(row)+(Qt(binNum)*tailProbOfOne(row, zeroIdx(bit)));
+                    if(binComb(binNum,bit) == '1')
+                        crossOverProbTail(row) = crossOverProbTail(row)+(Qt{row}(binNum)*tailProbOfOne(row, zeroIdx(bit)));
                     else
-                        crossOverProbTail(row) = crossOverProbTail(row)+(Qt(binNum)*(1-tailProbOfOne(row, zeroIdx(bit))));
+                        crossOverProbTail(row) = crossOverProbTail(row)+(Qt{row}(binNum)*(1-tailProbOfOne(row, zeroIdx(bit))));
                     end
                 end
             end

@@ -88,5 +88,5 @@ end
 avgAcc = mean(accuracies,2);
 disp(strcat('Fano metric V1= ', num2str(avgAcc(1))));
 disp(strcat('Fano metric V2 = ', num2str(avgAcc(2))));
-disp(strcat('Fano metric V3 = ', num2str(avgAcc(2))));
+disp(strcat('Fano metric V3 = ', num2str(avgAcc(3))));
 disp(strcat('Loss weighted = ', num2str(avgAcc(4))));
