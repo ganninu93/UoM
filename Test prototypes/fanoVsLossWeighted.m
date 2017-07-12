@@ -8,10 +8,6 @@ numFolds = 10;
 labels = glass_labels;
 data = glass_data;
 
-% split the labels into folds of approximately equal size and containing an
-% equal distribution of classes.
-partitions = cvpartition(numel(labels),'kfold',numFolds);
-
 % generateCodeMatrix
 codeMatrix = generateOneVsOneMatrix(numel(unique(labels)));
 
@@ -20,14 +16,10 @@ codeMatrix = generateOneVsOneMatrix(numel(unique(labels)));
 accuracies = zeros(3, numFolds);
 
 for foldNo = 1:numFolds
-    trainIdx = training(partitions, foldNo);
-    trainData = data(trainIdx,:);
-    trainLabels = labels(trainIdx,:);
-    testData = data(~trainIdx,:);
-    testLabels = labels(~trainIdx,:);
+    % print fold number to keep track of progress
+    disp(strcat('Starting fold ', num2str(foldNo)));
     
-    numTrainLabels = numel(unique(trainLabels))
-    numTestLabels = numel(unique(testLabels))
+    [trainData, trainLabels, testData, testLabels] = generateFold(data, labels, 0.8);
     
     %%%%%%%%%%%%%%%%%%
     % Encoding phase %
