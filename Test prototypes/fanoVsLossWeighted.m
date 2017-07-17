@@ -1,6 +1,7 @@
 % train and predict using the fano metric and loss weighted technique for
 % 10 times, each time calculating the accuracy. Average out the accuracies
 % and see which method is superior
+tic;
 numFolds = 10;
 
 % pre-process iris dataset
@@ -17,7 +18,7 @@ accuracies = zeros(3, numFolds);
 
 for foldNo = 1:numFolds
     % print fold number to keep track of progress
-    disp(strcat('Starting fold ', num2str(foldNo)));
+    disp(strcat('Starting fold...', num2str(foldNo)));
     
     [trainData, trainLabels, testData, testLabels] = generateFold(data, labels, 0.8);
     
@@ -82,3 +83,4 @@ disp(strcat('Fano metric V1= ', num2str(avgAcc(1))));
 disp(strcat('Fano metric V2 = ', num2str(avgAcc(2))));
 disp(strcat('Fano metric V3 = ', num2str(avgAcc(3))));
 disp(strcat('Loss weighted = ', num2str(avgAcc(4))));
+toc;

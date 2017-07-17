@@ -56,15 +56,18 @@ function accuracy = trainAndPredictFanoV2(performanceMat, tailProbOfOne, predict
             numZerosInRow = numel(zeroIdx);
             %generate all possible combinations for zero locations
             binComb = dec2bin([0:(2^numZerosInRow)-1]);
-            for binNum = 1:size(binComb,1)
-                for bit = 1:size(binComb,2)
-                    if(binComb(binNum,bit) == '1')
-                        crossOverProbTail(row) = crossOverProbTail(row)+(Qt{row}(binNum)*tailProbOfOne(row, zeroIdx(bit)));
-                    else
-                        crossOverProbTail(row) = crossOverProbTail(row)+(Qt{row}(binNum)*(1-tailProbOfOne(row, zeroIdx(bit))));
-                    end
-                end
-            end
+            % calculate cross over prob
+            crossOverZerosRow = repmat(tailProbOfOne(row, zeroIdx), size(binComb,1), 1);
+            crossOverOne = (binComb == '1') .* crossOverZerosRow;
+            crossOverZero = (binComb == '0') .* (1-crossOverZerosRow);
+            % add probabilities together to get a combination of both ones
+            % and zeros
+            crossOverCombined = crossOverOne + crossOverZero;
+            % multiply the probabilities for each binary combination
+            % multiply the product by Qt
+            % perform summation
+            crossOverProbTail(row) = sum(sum(crossOverCombined,2) .* Qt{row});
+            
         end
         
         fanoMetric = aprioriProb .* crossOverProb .* crossOverProbTail;
