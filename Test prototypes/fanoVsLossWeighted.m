@@ -6,8 +6,8 @@ numFolds = 10;
 
 % pre-process iris dataset
 %labels = convertStringToIntLabels(ecoli_labels);
-labels = glass_labels;
-data = glass_data;
+labels = derma_labels;
+data = derma_data;
 
 % generateCodeMatrix
 codeMatrix = generateOneVsOneMatrix(numel(unique(labels)));
@@ -77,6 +77,7 @@ for foldNo = 1:numFolds
     accuracies(2,foldNo) = trainAndPredictFanoV2(performanceMat, tailProbOfOne, predictions, testPred, trainLabels, testData, testLabels, codeMatrix, ecocMdl);
     accuracies(3,foldNo) = trainAndPredictFanoV3(performanceMat, tailProbOfOne, predictions, testPred, trainLabels, testData, testLabels, codeMatrix, ecocMdl);
     accuracies(4,foldNo) = trainAndPredictLossWeighted(performanceMat, testData, testLabels, testPred, codeMatrix, ecocMdl);
+    accuracies(:, foldNo)'
 end
 avgAcc = mean(accuracies,2);
 disp(strcat('Fano metric V1= ', num2str(avgAcc(1))));
