@@ -1,9 +1,11 @@
 function [trainingData, trainingLabels, testingData, testingLabels] = generateFold(data, labels, trainRatio)
+    currentLabel = min(labels);
     uniqueLabels = numel(unique(labels));
     classIdx = cell(uniqueLabels,1);
     % split data points into cells according to their class
     for label = 1:uniqueLabels
-       classIdx{label} = find(labels == label); 
+       classIdx{label} = find(labels == currentLabel);
+       currentLabel = currentLabel+1; % this code handles 0 index labels
     end
     
     trainingIdx = [];
