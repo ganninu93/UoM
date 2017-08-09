@@ -48,12 +48,12 @@ function accuracy = trainAndPredictFanoV3(performanceMat, tailProbOfOne, predict
             %generate all possible combinations for zero locations
             %if bin num contains more than 10 bits, the process is performed in
             %batches
-            batchStart = 2.^([0:10:floor(numZerosInRow/10)*10]);
-            batchEnd = 2.^([10:10:floor(numZerosInRow/10)*10,numZerosInRow])-1;
-            batchStart(1) = 0;
-            if rem(numZerosInRow,10) == 0
-                batchStart = batchStart(1:end-1);
-                batchEnd = batchEnd(1:end-1);
+            maxBinNum = (2^numZerosInRow)-1;
+            batchStart = [0:1000000:maxBinNum];
+            if maxBinNum < 999999
+                batchEnd = maxBinNum;
+            else
+                batchEnd = [999999:1000000:maxBinNum,maxBinNum];
             end
             
             for batchIdx = 1:numel(batchStart)

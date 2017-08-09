@@ -33,12 +33,12 @@ function accuracy = trainAndPredictFanoV2(performanceMat, tailProbOfOne, predict
             %generate all possible combinations for zero locations
             %if bin num contains more than 10 bits, the process is performed in
             %batches
-            batchStart = 2.^([0:10:floor(numZerosInRow/10)*10]);
-            batchEnd = 2.^([10:10:floor(numZerosInRow/10)*10,numZerosInRow])-1;
-            batchStart(1) = 0;
-            if rem(numZerosInRow,10) == 0
-                batchStart = batchStart(1:end-1);
-                batchEnd = batchEnd(1:end-1);
+            maxBinNum = (2^numZerosInRow)-1;
+            batchStart = [0:1000000:maxBinNum];
+            if maxBinNum < 999999
+                batchEnd = maxBinNum;
+            else
+                batchEnd = [999999:1000000:maxBinNum,maxBinNum];
             end
             
             %Calculate cross over prob for non tail elements
@@ -55,7 +55,7 @@ function accuracy = trainAndPredictFanoV2(performanceMat, tailProbOfOne, predict
             % Due to memory limitations, if the number of tail bits is
             % larger than 10, the process will be split up into batches.
             for batchIdx = 1:numel(batchStart)
-                binComb = dec2bin([batchStart(batchIdx):batchEnd(batchIdx)]);
+                binComb = dec2bin([batchStart(batchIdx):batchEnd(batchIdx)],numZerosInRow);
                 % Calculate probability that given tail is generated based on
                 % dichotomy's performance on entire training data set - Qt
                 bitProb = zeros(size(binComb,1),size(binComb,2));
