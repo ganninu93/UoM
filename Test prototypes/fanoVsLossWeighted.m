@@ -6,8 +6,8 @@ numFolds = 10;
 
 % pre-process iris dataset
 %labels = convertStringToIntLabels(ecoli_labels);
-labels = derma_labels;
-data = derma_data;
+labels = pendigits_labels;
+data = pendigits_data;
 
 % generateCodeMatrix
 codeMatrix = generateOneVsOneMatrix(numel(unique(labels)));
@@ -20,7 +20,7 @@ for foldNo = 1:numFolds
     % print fold number to keep track of progress
     disp(strcat('Starting fold...', num2str(foldNo)));
     
-    [trainData, trainLabels, testData, testLabels] = generateFold(data, labels, 0.8);
+    [trainData, trainLabels, testData, testLabels] = generateFold(data, labels, 0.9);
     
     %%%%%%%%%%%%%%%%%%
     % Encoding phase %
@@ -73,9 +73,14 @@ for foldNo = 1:numFolds
     %%%%%%%%%%%%%%%%%%
     % Decoding phase %
     %%%%%%%%%%%%%%%%%%
+    
+    disp('Starting V1');
     accuracies(1,foldNo) = trainAndPredictFano(performanceMat, tailProbOfOne, predictions, testPred, trainLabels, testData, testLabels, codeMatrix, ecocMdl);
+    disp('Starting V2');
     accuracies(2,foldNo) = trainAndPredictFanoV2(performanceMat, tailProbOfOne, predictions, testPred, trainLabels, testData, testLabels, codeMatrix, ecocMdl);
+    disp('Starting V3');
     accuracies(3,foldNo) = trainAndPredictFanoV3(performanceMat, tailProbOfOne, predictions, testPred, trainLabels, testData, testLabels, codeMatrix, ecocMdl);
+    disp('Starting LW');
     accuracies(4,foldNo) = trainAndPredictLossWeighted(performanceMat, testData, testLabels, testPred, codeMatrix, ecocMdl);
     accuracies(:, foldNo)'
 end

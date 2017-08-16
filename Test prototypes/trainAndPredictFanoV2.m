@@ -23,6 +23,7 @@ function accuracy = trainAndPredictFanoV2(performanceMat, tailProbOfOne, predict
 
     % predict test data points
     for dataPt = 1:size(testData,1)
+        disp(strcat('V2: Starting data point_', num2str(dataPt), '_of_', num2str(size(testData,1))));
         crossOverProbTail = zeros(size(codeMatrix,1),1);
         crossOverProb = ones(size(codeMatrix,1),1);
         for row = 1:size(codeMatrix,1)
@@ -34,11 +35,11 @@ function accuracy = trainAndPredictFanoV2(performanceMat, tailProbOfOne, predict
             %if bin num contains more than 10 bits, the process is performed in
             %batches
             maxBinNum = (2^numZerosInRow)-1;
-            batchStart = [0:1000000:maxBinNum];
-            if maxBinNum < 999999
+            batchStart = [0:10000000:maxBinNum];
+            if maxBinNum < 9999999
                 batchEnd = maxBinNum;
             else
-                batchEnd = [999999:1000000:maxBinNum,maxBinNum];
+                batchEnd = [9999999:10000000:maxBinNum,maxBinNum];
             end
             
             %Calculate cross over prob for non tail elements
@@ -55,6 +56,7 @@ function accuracy = trainAndPredictFanoV2(performanceMat, tailProbOfOne, predict
             % Due to memory limitations, if the number of tail bits is
             % larger than 10, the process will be split up into batches.
             for batchIdx = 1:numel(batchStart)
+                disp(strcat('V2: Starting batch_', num2str(batchIdx), '_of_', num2str(numel(batchStart))));
                 binComb = dec2bin([batchStart(batchIdx):batchEnd(batchIdx)],numZerosInRow);
                 % Calculate probability that given tail is generated based on
                 % dichotomy's performance on entire training data set - Qt
