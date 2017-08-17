@@ -22,7 +22,7 @@
 
 function Classifiers=Learning(data,Parameters,classes,positions)
 
-ECOC=Parameters.ECOC
+ECOC=Parameters.ECOC;
 base=Parameters.base;
 
 Classifiers=[];
