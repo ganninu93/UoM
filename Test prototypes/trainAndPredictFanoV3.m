@@ -29,7 +29,6 @@ function accuracy = trainAndPredictFanoV3(performanceMat, tailProbOfOne, predict
 
     % predict test data points
     for dataPt = 1:size(testData,1)
-        disp(strcat('V2: Starting data point_', num2str(dataPt), '_of_', num2str(size(testData,1))));
         crossOverProbTail = zeros(size(codeMatrix,1),1);
         crossOverProb = ones(size(codeMatrix,1),1);
         for row = 1:size(codeMatrix,1)

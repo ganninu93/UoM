@@ -6,15 +6,15 @@ numFolds = 10;
 
 % pre-process iris dataset
 %labels = convertStringToIntLabels(ecoli_labels);
-labels = pendigits_labels;
-data = pendigits_data;
+labels = letter_labels;
+data = letter_data;
 
 % generateCodeMatrix
 codeMatrix = generateOneVsOneMatrix(numel(unique(labels)));
 
 % create an accuracies matrix where the rows correspond to the different
 % methods and the columns to the different test
-accuracies = zeros(3, numFolds);
+accuracies = zeros(5, numFolds);
 
 for foldNo = 1:numFolds
     % print fold number to keep track of progress
@@ -73,20 +73,22 @@ for foldNo = 1:numFolds
     %%%%%%%%%%%%%%%%%%
     % Decoding phase %
     %%%%%%%%%%%%%%%%%%
-    
     disp('Starting V1');
     accuracies(1,foldNo) = trainAndPredictFano(performanceMat, tailProbOfOne, predictions, testPred, trainLabels, testData, testLabels, codeMatrix, ecocMdl);
-    disp('Starting V2');
-    accuracies(2,foldNo) = trainAndPredictFanoV2(performanceMat, tailProbOfOne, predictions, testPred, trainLabels, testData, testLabels, codeMatrix, ecocMdl);
-    disp('Starting V3');
-    accuracies(3,foldNo) = trainAndPredictFanoV3(performanceMat, tailProbOfOne, predictions, testPred, trainLabels, testData, testLabels, codeMatrix, ecocMdl);
+%     disp('Starting V2');
+%     accuracies(2,foldNo) = trainAndPredictFanoV2(performanceMat, tailProbOfOne, predictions, testPred, trainLabels, testData, testLabels, codeMatrix, ecocMdl);
+%     disp('Starting V3');
+%     accuracies(3,foldNo) = trainAndPredictFanoV3(performanceMat, tailProbOfOne, predictions, testPred, trainLabels, testData, testLabels, codeMatrix, ecocMdl);
+    disp('Starting V4');
+    accuracies(4,foldNo) = trainAndPredictFanoV4(performanceMat, tailProbOfOne, predictions, testPred, trainLabels, testData, testLabels, codeMatrix, ecocMdl);
     disp('Starting LW');
-    accuracies(4,foldNo) = trainAndPredictLossWeighted(performanceMat, testData, testLabels, testPred, codeMatrix, ecocMdl);
+    accuracies(5,foldNo) = trainAndPredictLossWeighted(performanceMat, testData, testLabels, testPred, codeMatrix, ecocMdl);
     accuracies(:, foldNo)'
 end
 avgAcc = mean(accuracies,2);
 disp(strcat('Fano metric V1= ', num2str(avgAcc(1))));
 disp(strcat('Fano metric V2 = ', num2str(avgAcc(2))));
 disp(strcat('Fano metric V3 = ', num2str(avgAcc(3))));
-disp(strcat('Loss weighted = ', num2str(avgAcc(4))));
+disp(strcat('Fano metric V4 = ', num2str(avgAcc(4))));
+disp(strcat('Loss weighted = ', num2str(avgAcc(5))));
 toc;
