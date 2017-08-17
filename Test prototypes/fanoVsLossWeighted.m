@@ -10,7 +10,7 @@ labels = glass_labels;
 data = glass_data;
 
 % Setup training params
-Parameters.coding='OneVsOne';
+Parameters.coding='ECOCONE';
 Parameters.decoding='ELW';
 Parameters.base='SVM';
 Parameters.base_params.iterations=50;
