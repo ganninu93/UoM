@@ -20,6 +20,22 @@ function accuracy = trainAndPredictFanoV2(performanceMat, tailProbOfOne, predict
     %%%%%%%%%%%%%%%%%
     
     testPredictions = zeros(numel(testLabels), 1);
+    
+    % perform tail calculations
+    Qt = cell(size(codeMatrix,1),1);
+    for row = 1:size(codeMatrix,1)
+        zeroIdx = find(codeMatrix(row,:)==0);
+        numZerosInRow = numel(zeroIdx);
+        %generate all possible combinations for zero locations
+        binComb = dec2bin([0:(2^numZerosInRow)-1]);
+        % Calculate probability that given tail is generated based on
+        % dichotomy's performance on entire training data set - Qt
+        bitProb = zeros(size(binComb,1),size(binComb,2));
+        for bit = 1:size(binComb,2)
+            bitProb(:,bit) = ((1-str2num(binComb(:,bit)))*(1-probOfOne(zeroIdx(bit))))+str2num(binComb(:,bit))*probOfOne(zeroIdx(bit));
+        end
+        Qt{row} = prod(bitProb,2);
+    end
 
     % predict test data points
     for dataPt = 1:size(testData,1)
@@ -28,19 +44,6 @@ function accuracy = trainAndPredictFanoV2(performanceMat, tailProbOfOne, predict
         for row = 1:size(codeMatrix,1)
             zeroIdx = find(codeMatrix(row,:)==0);
             nonZeroIdx = find(codeMatrix(row,:)~=0);
-            numZerosInRow = numel(zeroIdx);
-
-            %generate all possible combinations for zero locations
-            %if bin num contains more than 10 bits, the process is performed in
-            %batches
-            maxBinNum = (2^numZerosInRow)-1;
-            batchStart = [0:10000000:maxBinNum];
-            if maxBinNum < 9999999
-                batchEnd = maxBinNum;
-            else
-                batchEnd = [9999999:10000000:maxBinNum,maxBinNum];
-            end
-            
             %Calculate cross over prob for non tail elements
             for idx = 1:numel(nonZeroIdx)
                 if(testPred(dataPt, nonZeroIdx(idx)) == codeMatrix(row, nonZeroIdx(idx)))
@@ -49,33 +52,22 @@ function accuracy = trainAndPredictFanoV2(performanceMat, tailProbOfOne, predict
                     crossOverProb(row) = crossOverProb(row)*(1-performanceMat(row, nonZeroIdx(idx)));
                 end
             end
-            
             %Calculate cross over prob for all tails
+            numZerosInRow = numel(zeroIdx);
             %generate all possible combinations for zero locations
-            % Due to memory limitations, if the number of tail bits is
-            % larger than 10, the process will be split up into batches.
-            for batchIdx = 1:numel(batchStart)
-                binComb = dec2bin([batchStart(batchIdx):batchEnd(batchIdx)],numZerosInRow);
-                % Calculate probability that given tail is generated based on
-                % dichotomy's performance on entire training data set - Qt
-                bitProb = zeros(size(binComb,1),size(binComb,2));
-                for bit = 1:size(binComb,2)
-                    bitProb(:,bit) = ((1-str2num(binComb(:,bit)))*(1-probOfOne(zeroIdx(bit))))+str2num(binComb(:,bit))*probOfOne(zeroIdx(bit));
-                end
-                Qt = prod(bitProb,2);
-                
-                % calculate cross over prob
-                crossOverZerosRow = repmat(tailProbOfOne(row, zeroIdx), size(binComb,1), 1);
-                crossOverOne = (binComb == '1') .* crossOverZerosRow;
-                crossOverZero = (binComb == '0') .* (1-crossOverZerosRow);
-                % add probabilities together to get a combination of both ones
-                % and zeros
-                crossOverCombined = crossOverOne + crossOverZero;
-                % multiply the probabilities for each binary combination
-                % multiply the product by Qt
-                % perform summation
-                crossOverProbTail(row) = crossOverProbTail(row) + sum(sum(crossOverCombined,2) .* Qt);
-            end
+            binComb = dec2bin([0:(2^numZerosInRow)-1]);
+            % calculate cross over prob
+            crossOverZerosRow = repmat(tailProbOfOne(row, zeroIdx), size(binComb,1), 1);
+            crossOverOne = (binComb == '1') .* crossOverZerosRow;
+            crossOverZero = (binComb == '0') .* (1-crossOverZerosRow);
+            % add probabilities together to get a combination of both ones
+            % and zeros
+            crossOverCombined = crossOverOne + crossOverZero;
+            % multiply the probabilities for each binary combination
+            % multiply the product by Qt
+            % perform summation
+            crossOverProbTail(row) = sum(sum(crossOverCombined,2) .* Qt{row});
+            
         end
         
         fanoMetric = aprioriProb .* crossOverProb .* crossOverProbTail;
@@ -84,4 +76,3 @@ function accuracy = trainAndPredictFanoV2(performanceMat, tailProbOfOne, predict
 
     accuracy = sum(testPredictions == testLabels)/numel(testLabels);
 end
-
